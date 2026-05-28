@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import sys
 from datetime import datetime
 
 DB_FILE = "proje.json"
@@ -8,7 +9,7 @@ DB_FILE = "proje.json"
 CUSTOMER_REVIEWS = [
     "☕ Harika seçim! Kahveniz sevgiyle hazırlanıyor.",
     "🌟 Bugünün favorisi kesinlikle bu kahve!",
-    "🥐 Kahvenizin yanına güzel bir tatlı çok yakıyordu!",
+    "🥐 Kahvenizin yanına güzel bir tatlı çok yakışırdı!",
     "🔥 Mels Kafe'de her yudum ayrı bir keyif!",
     "⚡ Enerjiniz tavan yapacak, harika bir tercih!",
     "🎯 Bu aromanın kokusu şimdiden tüm kafeyi sardı!"
@@ -157,7 +158,23 @@ TOPLAM ÖDENEN    : {final_price:.2f} TL
     try:
         with open(file_name, "w", encoding="utf-8-sig") as f:
             f.write(receipt_content)
-        print(f"💾 Fiziksel Fişiniz başarıyla oluşturuldu: {file_name}")
+        
+        abs_path = os.path.abspath(file_name)
+        print(f"\n💾 Fiziksel Fişiniz başarıyla oluşturuldu!")
+        print(f"📍 Dosya Konumu: {abs_path}")
+        
+        try:
+            if sys.platform.startswith('win'):
+                os.startfile(file_name)
+            elif sys.platform.startswith('darwin'):
+                import subprocess
+                subprocess.call(('open', file_name))
+            else:
+                import subprocess
+                subprocess.call(('xdg-open', file_name))
+        except:
+            pass
+            
     except Exception as e:
         print(f"⚠️ Fiş dosyası yazılırken bir hata oluştu: {e}")
 
