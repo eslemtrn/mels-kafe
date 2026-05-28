@@ -3,21 +3,18 @@ import os
 import random
 from datetime import datetime
 
-# Dosya tabanlı veritabanı dosya adı
-DB_FILE = "mels_kafe_db.json"
+DB_FILE = "proje.json"
 
-# Rastgele müşteri yorumları listesi
 CUSTOMER_REVIEWS = [
     "☕ Harika seçim! Kahveniz sevgiyle hazırlanıyor.",
     "🌟 Bugünün favorisi kesinlikle bu kahve!",
-    "🥐 Kahvenizin yanına güzel bir tatlı çok yakışırdı!",
+    "🥐 Kahvenizin yanına güzel bir tatlı çok yakıyordu!",
     "🔥 Mels Kafe'de her yudum ayrı bir keyif!",
     "⚡ Enerjiniz tavan yapacak, harika bir tercih!",
     "🎯 Bu aromanın kokusu şimdiden tüm kafeyi sardı!"
 ]
 
 def initialize_database():
-    """Veritabanı dosyası yoksa varsayılan verilerle oluşturur."""
     default_db = {
         "users": {
             "admin": {
@@ -34,7 +31,7 @@ def initialize_database():
                 "first_name": "Melis",
                 "last_name": "Yılmaz",
                 "age": 22,
-                "points": 120 # Deneme amaçlı hazır puanlı kullanıcı
+                "points": 120 
             }
         },
         "menu": {
@@ -67,18 +64,15 @@ def initialize_database():
             json.dump(default_db, f, indent=4, ensure_ascii=False)
 
 def load_database():
-    """Veritabanını dosyadan okur."""
     initialize_database()
     with open(DB_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def save_database(db):
-    """Veritabanını dosyaya kaydeder."""
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(db, f, indent=4, ensure_ascii=False)
 
 def register_user(db):
-    """Sisteme yeni bir müşteri kaydeder."""
     print("\n--- KAYIT OL ---")
     username = input("Kullanıcı Adı belirleyin: ").strip().lower()
     
@@ -108,7 +102,6 @@ def register_user(db):
         except ValueError:
             print("Lütfen sadece sayı giriniz!")
             
-    # Kullanıcıyı veri tabanına ekle
     db["users"][username] = {
         "password": password,
         "role": "customer",
@@ -122,7 +115,6 @@ def register_user(db):
     print(f"🎉 Tebrikler {first_name}, başarıyla kayıt oldun! Giriş yapabilirsin.")
 
 def login(db):
-    """Kullanıcı veya yetkili girişi yapar."""
     print("\n--- GİRİŞ YAP ---")
     username = input("Kullanıcı Adı: ").strip().lower()
     password = input("Şifre: ").strip()
@@ -135,7 +127,6 @@ def login(db):
         return None
 
 def generate_text_receipt(customer_name, username, product_name, base_price, extra_price, discount, coupon, happy_hour_disc, final_price, note):
-    """Sipariş sonunda bilgisayara fiziksel bir .txt fiş dosyası kaydeder."""
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     file_name = f"mels_kafe_fis_{timestamp}.txt"
@@ -164,28 +155,24 @@ TOPLAM ÖDENEN    : {final_price:.2f} TL
 =========================================
 """
     try:
-        with open(file_name, "w", encoding="utf-8") as f:
+        with open(file_name, "w", encoding="utf-8-sig") as f:
             f.write(receipt_content)
         print(f"💾 Fiziksel Fişiniz başarıyla oluşturuldu: {file_name}")
     except Exception as e:
         print(f"⚠️ Fiş dosyası yazılırken bir hata oluştu: {e}")
 
 def check_happy_hour():
-    """Şu anki saatin Happy Hour (14:00 - 16:00) diliminde olup olmadığını kontrol eder."""
     current_hour = datetime.now().hour
-    # Test etmek isterseniz bu aralığı değiştirebilirsiniz
     if 14 <= current_hour < 16:
         return True
     return False
 
 def order_coffee(db, username):
-    """Müşterinin kahve sipariş etme akışı."""
     user = db["users"][username]
     
     print("\n--- KAHVE MENÜSÜ ---")
     menu_items = list(db["menu"].keys())
     
-    # Menüyü ve stok durumunu yazdır
     for idx, item in enumerate(menu_items, 1):
         price = db["menu"][item]["price"]
         stock = db["menu"][item]["stock"]
@@ -200,15 +187,13 @@ def order_coffee(db, username):
     coffee_name = menu_items[int(choice) - 1]
     coffee_data = db["menu"][coffee_name]
     
-    # Stok kontrolü
     if coffee_data["stock"] <= 0:
         print(f"\n😔 Üzgünüz, {coffee_name} tükendi! Lütfen başka bir kahve seçiniz.")
         return
         
     base_price = coffee_data["price"]
-    extra_price = 0.0 # Boy, Süt ve Aroma gibi ekstra masraflar buraya eklenir
+    extra_price = 0.0 
     
-    # 1. Boy Seçimi
     print("\n--- BOY SEÇİMİ ---")
     size_keys = list(db["sizes"].keys())
     for idx, key in enumerate(size_keys, 1):
@@ -227,7 +212,6 @@ def order_coffee(db, username):
     size_name = db["sizes"][size_key]["name"]
     extra_price += size_price
     
-    # 2. Süt Alternatifi Seçimi (Yeni Özellik!)
     print("\n--- SÜT SEÇENEĞİ ---")
     for key, milk_info in db["milks"].items():
         price_diff = f"+{milk_info['price']} ₺" if milk_info['price'] > 0 else "Ücretsiz"
@@ -243,7 +227,6 @@ def order_coffee(db, username):
     milk_name = db["milks"][milk_key]["name"]
     extra_price += db["milks"][milk_key]["price"]
     
-    # 3. Aroma Seçimi (Yalnızca Latte için aromalar sunulur)
     flavor_name = ""
     if coffee_name == "Latte":
         print("\n--- AROMA SEÇİMİ ---")
@@ -257,11 +240,9 @@ def order_coffee(db, username):
             extra_price += flavor_data["price"]
             flavor_name = flavor_data["name"] + " Aromalı"
             
-    # 4. Barista Notu Ekleme (Yeni Özellik!)
     print("\n--- SİPARİŞ NOTU (İsteğe Bağlı) ---")
     order_note = input("Baristaya iletmek istediğiniz özel bir not var mı? (Boş geçmek için Enter): ").strip()
     
-    # Tam ürün isimlendirmesi
     milk_prefix = f"({milk_name})" if milk_key != "1" else ""
     flavor_prefix = f"{flavor_name}" if flavor_name else "Sade"
     
@@ -270,7 +251,6 @@ def order_coffee(db, username):
     else:
         full_product_name = f"{size_key} {milk_prefix} {coffee_name}"
     
-    # 5. Puan / Ücretsiz Kahve Sistemi Kontrolü
     use_points = False
     if user["points"] >= 100:
         print(f"\n⭐ Tebrikler! {user['points']} Mels Puanınız var!")
@@ -279,7 +259,7 @@ def order_coffee(db, username):
             use_points = True
             
     final_price = base_price + extra_price
-    points_earned = 20 # Her normal sipariş 20 puan kazandırır
+    points_earned = 20 
     
     youth_discount = 0.0
     coupon_discount = 0.0
@@ -291,19 +271,16 @@ def order_coffee(db, username):
         user["points"] -= 100
         print("🎁 100 Puanınız kullanıldı! Kahveniz tamamen Ücretsiz!")
     else:
-        # Happy Hour Kontrolü (Yeni Özellik!)
         if check_happy_hour():
             happy_hour_discount = final_price * 0.10
             final_price -= happy_hour_discount
             print(f"⏰ MUTLU SAATLER! 14:00-16:00 arası %10 Happy Hour indirimi uygulandı: -{round(happy_hour_discount, 2)} ₺")
             
-        # Yaş indirimi kontrolü (25 yaş altı müşteriler için %10 indirim)
         if user["age"] < 25:
             youth_discount = final_price * 0.10
             final_price -= youth_discount
             print(f"-> Genç İndirimi (%10) uygulandı! Kazanılan indirim: -{round(youth_discount, 2)} ₺")
             
-        # Kupon Kodu kontrolü
         coupon_choice = input("\nKupon kodu kullanmak istiyor musunuz? (1-Evet / 2-Hayır): ").strip()
         if coupon_choice == "1":
             entered_code = input("Kupon kodunu giriniz: ").strip()
@@ -322,34 +299,29 @@ def order_coffee(db, username):
         print(f"✍️ Sipariş Notunuz: \"{order_note}\"")
     print(f"💰 Ödenecek Tutar: {final_price} ₺")
     
-    # Sipariş onayı alalım
     confirm = input("Siparişi onaylıyor musunuz? (1-Evet / 2-Hayır): ").strip()
     if confirm != "1":
         print("❌ Sipariş iptal edildi.")
         return
         
-    # Stok düşür ve puan ekle
     db["menu"][coffee_name]["stock"] -= 1
     if not use_points:
         user["points"] += points_earned
         print(f"⭐ Bu siparişten {points_earned} puan kazandınız! Güncel Puanınız: {user['points']}")
         
-    # Veri tabanına siparişi kaydet
     new_order = {
         "username": username,
         "customer_name": f"{user['first_name']} {user['last_name']}",
         "product": full_product_name,
-        "base_coffee": coffee_name, # İstatistik grafiği için temel kahveyi saklıyoruz
+        "base_coffee": coffee_name, 
         "price": final_price,
         "date": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
     db["orders"].append(new_order)
     db["total_revenue"] += final_price
     
-    # Kaydet
     save_database(db)
     
-    # Fiziksel fatura .txt belgesini üret (Yeni Özellik!)
     generate_text_receipt(
         customer_name=f"{user['first_name']} {user['last_name']}",
         username=username,
@@ -363,13 +335,11 @@ def order_coffee(db, username):
         note=order_note
     )
     
-    # Rastgele güzel müşteri yorumu göster
     print("\n" + "-"*40)
     print(random.choice(CUSTOMER_REVIEWS))
     print("-"*40)
 
 def show_customer_orders(db, username):
-    """Müşterinin sadece kendi sipariş geçmişini görmesini sağlar."""
     print("\n--- SİPARİŞ GEÇMİŞİNİZ ---")
     user_orders = [o for o in db["orders"] if o["username"] == username]
     
@@ -381,26 +351,21 @@ def show_customer_orders(db, username):
         print(f"⭐ Toplam birikmiş kart puanınız: {db['users'][username]['points']} Puan")
 
 def display_sales_chart(db):
-    """Admin panelinde satılan kahvelerin dinamik ASCII sütun grafiğini çizer."""
     print("\n--- 📈 POPÜLER KAHVELER SATIŞ ANALİZİ ---")
     
-    # Satış adetlerini say
     sales_counts = {"Espresso": 0, "Americano": 0, "Latte": 0}
     for order in db["orders"]:
         coffee_type = order.get("base_coffee")
         if coffee_type in sales_counts:
             sales_counts[coffee_type] += 1
             
-    # Grafiği çizdir
     max_label_length = max(len(k) for k in sales_counts.keys())
     for coffee, count in sales_counts.items():
-        # Her bir satış için bir blok karakteri (█) basıyoruz
         bar = "█" * count
         print(f"{coffee:<{max_label_length}} | {bar:<15} ({count} Adet)")
     print("-" * 40)
 
 def admin_panel(db):
-    """Sadece yetkililerin görebileceği admin paneli."""
     while True:
         print("\n" + "═"*40)
         print("          🛡️ YÖNETİCİ ADMİN PANELİ 🛡️          ")
@@ -427,7 +392,7 @@ def admin_panel(db):
                     print(f"[{idx}] {o['date']} | Müşteri: {o['customer_name']} ({o['username']}) | Ürün: {o['product']} | Tutar: {o['price']} ₺")
                     
         elif choice == "3":
-            display_sales_chart(db) # Yeni grafik fonksiyonumuz çağrılıyor
+            display_sales_chart(db) 
             
         elif choice == "4":
             print("\n--- KAYITLI KULLANICILAR VE KART PUANLARI ---")
@@ -465,9 +430,7 @@ def admin_panel(db):
             print("❌ Geçersiz seçim!")
 
 def main():
-    """Programın ana döngüsü."""
     while True:
-        # Her döngü başında güncel veritabanını çekiyoruz
         db = load_database()
         
         print("\n" + "═"*45)
@@ -483,15 +446,12 @@ def main():
         if main_choice == "1":
             username = login(db)
             if username:
-                # Kullanıcı rolüne göre yönlendirme yapalım
                 user_role = db["users"][username]["role"]
                 
                 if user_role == "admin":
                     admin_panel(db)
                 else:
-                    # Müşteri Menüsü
                     while True:
-                        # Veriyi her seferinde taze tutalım
                         db = load_database()
                         print("\n" + "═"*35)
                         print(f"        ☕ MÜŞTERİ MENÜSÜ ({db['users'][username]['first_name'].upper()})        ")
@@ -526,6 +486,4 @@ def main():
             print("❌ Geçersiz seçim! Lütfen ana menüden 1, 2 veya 3'ü tuşlayınız.")
 
 if __name__ == "__main__":
-    main()# -*- coding: utf-8 -*-
-
-
+    main()
